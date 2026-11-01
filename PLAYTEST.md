@@ -1,18 +1,25 @@
-# Prototype playtest
+# Revision 2 validation
 
-## Verified
-- Two separate browser tabs create and join one room, each retaining its own seat.
-- Both clients observe movement and reciprocal offers through polling.
-- Accepting removes the donor floor and credits the recipient.
-- Each client places its received piece, crosses its bridge, and sees shared victory.
-- Six engine tests pass, including legal solutions for every chapter, two approaches to the introductory route, invalid actions, material conservation, and mutual restart/advance requirements.
-- TypeScript and production build pass.
+## Automated
+- Twelve engine/design tests: legal completion of all eight levels, asymmetric maps, essential bridge gaps, adjacency, occupied ground, one-piece capacity, required keepsakes, switch/gate latching, material conservation, mutual restart/advance, journey totals, invalid actions, and bounded quick signals.
+- The solver replays actual move/offer/accept/place actions; no teleportation or inventory injection is used in completion fixtures.
+- For each socket, the solver repeats the search with that build disabled. Every such search must fail, preventing the redundant near-home gap from the original prototype.
+- TypeScript and production build checks.
+
+## Browser
+- Interactive tutorial: move, choose give mode, offer a star, accept as the partner, place beside the traveler, and finish practice.
+- Two-client room, exchange, build, and shared victory checks.
+- Expanded winding journey map, quick signals, and chapter/final celebrations inspected visually.
+
+## Integration runner
+`tests/multiplayer.mjs` creates two independent session credentials and tests all chapter solutions over HTTP. The managed preview URL is browser-only in this environment, so executor requests to it could not complete. Run this against an accessible test server; do not claim that HTTP integration passed based only on engine tests.
 
 ## Next human playtest
-Give two new players the URL without explaining the rules. Observe whether they discover the give/accept/place sequence, whether both contribute, and whether either feels directed by the other. Record time to first successful exchange and the points where instructions were needed.
+Invite two new players without verbal instructions. Observe:
+1. Can they complete practice and make their first real exchange independently?
+2. Does each person choose routes and timing, or does one direct everything?
+3. Do they understand why a failed gift cut off a route?
+4. Does difficulty rise without requiring repeated restarts from unclear rules?
+5. Is the optional pace challenge enjoyable rather than distracting?
 
-## Current limitations
-Three short introductory chapters. No matchmaking or replacement for a departed player's seat. Rooms expire after 24 hours. No external-player enjoyment study yet. Mobile layout is implemented but has not been tested on physical phones. Chapter complexity and replayability need development before competition submission.
-
-## GitHub
-The GitHub integration was confirmed installed during the build, but its repository tools were not exposed to the active execution session. Milestone commits are preserved locally and in the hosting source repository. They have not yet been pushed to a GitHub repository.
+Adjust authored maps from these observations. Do not infer competition readiness from solution existence alone.
