@@ -15,7 +15,7 @@ A cooperative browser puzzle for two players on separate devices. Every piece yo
 7. Stand on a round switch to open your partner's gate. Crossing latches a gate open.
 8. Both travelers must reach home. Restarts and chapter advancement require both players' agreement.
 
-Quick signals support coordination without a voice call. The optional three-minute pace challenge adds a clock without eliminating anyone. Rooms expire after 24 hours; keep the original tab to retain your seat.
+Quick signals support coordination without a voice call. The Sound menu has separate music/effects switches and a volume slider; both start off. The light/dark toggle and sound choices persist on each device. All music and sound effects are original browser synthesis, dedicated to CC0 in AUDIO_LICENSE.md. The optional three-minute pace challenge adds a clock without eliminating anyone. Rooms expire after 24 hours; keep the original tab to retain your seat.
 
 ## Eight-stop progression
 
@@ -36,7 +36,7 @@ Every socket serves a required route to home or a keepsake. The test suite searc
 
 Node 22.13+ and pnpm. Install with `pnpm install --frozen-lockfile`, then use `pnpm dev`. D1 migrations must be applied to the local preview database. The Sites workflow manages production builds, migration application, and hosting.
 
-- `node --experimental-strip-types --test tests/game.test.ts`: engine and level-design tests.
+- `node --experimental-strip-types --test tests/game.test.ts tests/audio.test.ts`: engine and level-design tests.
 - `node --experimental-strip-types tests/solver.ts --write`: regenerate legal solution fixtures after changing maps.
 - `pnpm exec tsc --noEmit`: type checking.
 - `GAME_TEST_URL=http://your-reachable-dev-server node tests/multiplayer.mjs`: two-client HTTP integration run against a test server. This creates one test room and completes all eight stops.

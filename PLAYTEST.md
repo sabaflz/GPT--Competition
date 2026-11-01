@@ -23,3 +23,12 @@ Invite two new players without verbal instructions. Observe:
 5. Is the optional pace challenge enjoyable rather than distracting?
 
 Adjust authored maps from these observations. Do not infer competition readiness from solution existence alone.
+
+
+## Audio, theme, and tutorial update
+- Original CC0 procedural music and effects; no third-party audio assets.
+- Audio test checks default silence, independent switches, zero volume, and suspension.
+- Browser checks cover light/dark switching, separate sound toggles, and restoring settings after reload.
+- Practice shows the waiting state, then acceptance and construction, followed by three explicit one-tile moves before the home celebration.
+- Real-game panels distinguish waiting for an offer, waiting for acceptance, and carrying a piece ready to build.
+- Audio synthesis was exercised in the browser and tested with a mock audio context; perceived loudness and timbre still benefit from listening on users’ devices.
