@@ -1,0 +1,23 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {Music2,Volume2,Sun,Moon,Settings2,X} from 'lucide-react';
+import {soundscape} from '@/lib/audio';
+type Preferences={music:boolean;effects:boolean;volume:number;theme:'light'|'dark'};
+const defaults:Preferences={music:false,effects:false,volume:.45,theme:'dark'};
+export function PreferencesPanel(){
+ const [settings,setSettings]=useState<Preferences>(defaults),[open,setOpen]=useState(false),[error,setError]=useState('');const panel=useRef<HTMLDivElement>(null),current=useRef(defaults);
+ function persist(next:Preferences){current.current=next;setSettings(next);document.documentElement.dataset.theme=next.theme;localStorage.setItem('missing-piece-preferences',JSON.stringify(next));}
+ async function audio(next:Preferences){try{soundscape().setVolume(next.volume);await soundscape().configure(next.music,next.effects);setError('');}catch{setError('Your browser paused audio. Tap Music or Sound effects to try again.');}}
+ useEffect(()=>{
+  let saved=defaults;try{const data=JSON.parse(localStorage.getItem('missing-piece-preferences')||'null');if(data)saved={music:data.music===true,effects:data.effects===true,volume:typeof data.volume==='number'?Math.max(0,Math.min(1,data.volume)):.45,theme:data.theme==='light'?'light':'dark'};}catch{}
+  current.current=saved;setSettings(saved);document.documentElement.dataset.theme=saved.theme;
+  // Browsers require a gesture before starting audio, including restored settings.
+  const activate=()=>{if(document.visibilityState!=='hidden')void audio(current.current);};
+  const visibility=()=>{if(document.hidden)void soundscape().pause();else activate();};
+  document.addEventListener('pointerdown',activate,{once:true});document.addEventListener('keydown',activate,{once:true});document.addEventListener('visibilitychange',visibility);
+  return()=>{document.removeEventListener('pointerdown',activate);document.removeEventListener('keydown',activate);document.removeEventListener('visibilitychange',visibility);void soundscape().configure(false,false);};
+ },[]);
+ useEffect(()=>{if(!open)return;const dismiss=(e:PointerEvent)=>{if(panel.current&&!panel.current.contains(e.target as Node))setOpen(false);};const escape=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};document.addEventListener('pointerdown',dismiss);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',dismiss);document.removeEventListener('keydown',escape);};},[open]);
+ async function toggle(field:'music'|'effects'){const next={...settings,[field]:!settings[field]};persist(next);await audio(next);if(field==='effects'&&next.effects)soundscape().play('accept');}
+ return <div className="preferences" ref={panel}><button className="text-button theme-button" aria-label={settings.theme==='dark'?'Switch to light mode':'Switch to dark mode'} onClick={()=>persist({...settings,theme:settings.theme==='dark'?'light':'dark'})}>{settings.theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}<span>{settings.theme==='dark'?'Light':'Dark'}</span></button><button className="text-button" aria-label="Sound settings" aria-expanded={open} aria-controls="sound-settings" onClick={()=>setOpen(!open)}><Settings2 size={16}/><span>Sound</span></button>{open&&<section className="preferences-panel" id="sound-settings" aria-label="Sound preferences"><div className="preferences-heading"><strong>Make yourself at home</strong><button className="text-button" aria-label="Close sound settings" onClick={()=>setOpen(false)}><X size={15}/></button></div><button className="setting-row" role="switch" aria-checked={settings.music} onClick={()=>void toggle('music')}><Music2 size={17}/><span><b>Music</b><small>Original, gentle ambient melody</small></span><i className={'toggle '+(settings.music?'enabled':'')}/></button><button className="setting-row" role="switch" aria-checked={settings.effects} onClick={()=>void toggle('effects')}><Volume2 size={17}/><span><b>Sound effects</b><small>Footsteps, gifts, and little victories</small></span><i className={'toggle '+(settings.effects?'enabled':'')}/></button><label className="volume-label" htmlFor="audio-volume">Volume <span>{Math.round(settings.volume*100)}%</span></label><input id="audio-volume" type="range" min="0" max="100" value={Math.round(settings.volume*100)} onChange={e=>{const next={...settings,volume:Number(e.target.value)/100};persist(next);soundscape().setVolume(next.volume);}}/><p className="preferences-note">Audio is off by default. Your choices stay on this device. Music and effects are original, with no third-party recordings.</p>{error&&<p className="audio-error" role="status">{error}</p>}</section>}</div>;
+}
