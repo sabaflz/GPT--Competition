@@ -12,7 +12,7 @@
 - Expanded winding journey map, quick signals, and chapter/final celebrations inspected visually.
 
 ## Integration runner
-`tests/multiplayer.mjs` creates two independent session credentials and tests all chapter solutions over HTTP. The managed preview URL is browser-only in this environment, so executor requests to it could not complete. Run this against an accessible test server; do not claim that HTTP integration passed based only on engine tests.
+`tests/multiplayer.mjs` creates two independent session credentials and tests all chapter solutions over HTTP. The managed preview URL was not reachable from the executor. The same runner then passed against the published game: both independent sessions completed all eight chapters, including both-way gates, required keepsakes, synchronized victory, and mutual chapter transitions. Unauthorized sessions and stale versions were rejected as expected. No gameplay state was injected for this integration run. The final celebration also received a separate visual check using a local-only solved-state fixture.
 
 ## Next human playtest
 Invite two new players without verbal instructions. Observe:
