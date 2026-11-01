@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {bootNavigation,inviteLink,invitation} from '../lib/navigation.ts';
+import {validTraveler,chooseAvailable,COLORS,SHAPES} from '../lib/travelers.ts';
+const saved=JSON.stringify({code:'ABC234',token:'12345678-1234-1234-1234-123456789012'});
+test('explicit main-menu navigation persists across a reload while retaining a resumable seat',()=>{const boot=bootNavigation('https://game.test/',saved,'menu');assert.equal(boot.screen,'menu');assert.equal(boot.session?.code,'ABC234');});
+test('only an intentional saved game screen restores gameplay',()=>{assert.equal(bootNavigation('https://game.test/',saved,'game').screen,'game');assert.equal(bootNavigation('https://game.test/',null,'game').screen,'menu');});
+test('an invitation wins over an old game session and fills the new room',()=>{const boot=bootNavigation('https://game.test/?room=XYZ789',saved,'game');assert.equal(boot.screen,'menu');assert.equal(boot.invite,'XYZ789');assert.equal(boot.session?.code,'ABC234');});
+test('a copied invitation round-trips in another browser with no session or manual room entry',()=>{const link=inviteLink('https://game.test','XYZ789');assert.equal(link,'https://game.test/?room=XYZ789');const boot=bootNavigation(link,null,null);assert.equal(boot.invite,'XYZ789');assert.equal(boot.screen,'menu');});
+test('room parsing rejects malformed codes and corrupted local sessions',()=>{assert.equal(invitation('https://game.test/?room=bad'),'');assert.equal(bootNavigation('https://game.test/','bad','game').session,null);assert.throws(()=>inviteLink('https://game.test','bad'));});
+test('character choices are bounded and taken colors get a different available choice',()=>{assert.equal(COLORS.length,4);assert.equal(SHAPES.length,3);assert.deepEqual(chooseAvailable({color:'blue',shape:'leaf'},['blue']),{color:'lilac',shape:'leaf'});assert.throws(()=>validTraveler({color:'neon',shape:'round'}));assert.throws(()=>validTraveler({color:'blue',shape:'unknown'}));});
