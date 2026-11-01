@@ -1,106 +1,38 @@
-const sidebarWidths = [74, 58, 82, 66, 71, 54];
-const articleWidths = [100, 97, 94, 98, 86];
-
-export default function Home() {
-  return (
-    <main className="fixed inset-0 overflow-hidden bg-[#fbfaf8] text-zinc-900">
-      <header
-        aria-hidden="true"
-        className="grid h-[76px] grid-cols-[1fr_auto_1fr] items-center border-b border-stone-200 bg-white/95 px-6 sm:px-14"
-      >
-        <div className="flex items-center gap-3">
-          <span className="h-9 w-9 rounded-full bg-stone-100" />
-          <span className="h-3.5 w-28 rounded-full bg-stone-100" />
-        </div>
-        <span className="hidden h-9 w-[min(30vw,420px)] rounded-xl bg-stone-100 sm:block" />
-        <div className="flex items-center justify-end gap-3">
-          <span className="hidden h-9 w-9 rounded-full bg-stone-100 sm:block" />
-          <span className="h-9 w-24 rounded-xl bg-stone-100" />
-        </div>
-      </header>
-
-      <div
-        aria-hidden="true"
-        className="grid h-[calc(100%-76px)] grid-cols-[180px_minmax(0,1fr)_260px] gap-10 px-6 pb-24 pt-10 opacity-55 max-lg:grid-cols-[150px_minmax(0,1fr)] max-sm:grid-cols-1 sm:px-14"
-      >
-        <aside className="hidden border-r border-stone-200 pr-7 sm:block">
-          <div className="mb-6 h-2.5 w-16 rounded-full bg-stone-200" />
-          <div className="space-y-4">
-            {sidebarWidths.map((width) => (
-              <div key={width} className="flex items-center gap-3">
-                <span className="h-4 w-4 rounded bg-stone-200" />
-                <span
-                  className="h-2.5 rounded-full bg-stone-200"
-                  style={{ width: `${width}%` }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mb-6 mt-9 h-2.5 w-24 rounded-full bg-stone-200" />
-          <div className="space-y-4">
-            {sidebarWidths.slice(0, 3).map((width) => (
-              <span
-                key={width}
-                className="block h-2.5 rounded-full bg-stone-200"
-                style={{ width: `${width}%` }}
-              />
-            ))}
-          </div>
-        </aside>
-
-        <article className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-          <div className="space-y-3">
-            <div className="h-2.5 w-28 rounded-full bg-stone-200" />
-            <div className="h-7 w-4/5 rounded-lg bg-stone-200" />
-            <div className="h-7 w-3/5 rounded-lg bg-stone-200" />
-          </div>
-          <div className="min-h-[240px] flex-1 rounded-2xl bg-stone-200" />
-          <div className="flex items-center gap-3">
-            <span className="h-9 w-9 rounded-full bg-stone-200" />
-            <span className="h-2.5 w-28 rounded-full bg-stone-200" />
-          </div>
-          <div className="space-y-2">
-            {articleWidths.map((width) => (
-              <span
-                key={width}
-                className="block h-2.5 rounded-full bg-stone-200"
-                style={{ width: `${width}%` }}
-              />
-            ))}
-          </div>
-        </article>
-
-        <aside className="space-y-5 max-lg:hidden">
-          {[0, 1].map((card) => (
-            <div
-              key={card}
-              className="space-y-4 rounded-2xl border border-stone-200 bg-white/70 p-6"
-            >
-              <span className="block h-10 w-10 rounded-full bg-stone-200" />
-              <span className="block h-3 w-3/5 rounded-full bg-stone-200" />
-              <span className="block h-2.5 w-full rounded-full bg-stone-200" />
-              <span className="block h-2.5 w-4/5 rounded-full bg-stone-200" />
-              <span className="block h-8 w-24 rounded-lg bg-stone-200" />
-            </div>
-          ))}
-        </aside>
-      </div>
-
-      <output
-        aria-live="polite"
-        aria-atomic="true"
-        className="absolute left-1/2 top-[clamp(96px,13vh,122px)] w-[min(620px,calc(100%-40px))] -translate-x-1/2 rounded-[18px] border border-stone-200 bg-white/95 px-5 py-5 shadow-[0_18px_50px_rgb(24_24_27/9%)] backdrop-blur-sm"
-      >
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.09em] text-stone-500">
-          Building your site
-        </p>
-        <h1 className="text-xl font-semibold tracking-tight">
-          Your site is taking shape
-        </h1>
-        <p className="mt-1 text-sm text-stone-500">
-          Your first version will appear here automatically when it’s ready.
-        </p>
-      </output>
-    </main>
-  );
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, ArrowUpRight, Check, Copy, House, Link2, MoveUpRight, RotateCcw, Sparkles, X, HelpCircle, ChevronRight, VolumeX } from 'lucide-react';
+import { LEVELS, key, won, type Game, type Point, type Action } from '@/lib/game';
+type Session={code:string;token:string};
+type Room={code:string;player:number;names:[string,string|null];joined:boolean;state:Game;version:number;seen:[number,number|null]};
+function Creature({violet=false}:{violet?:boolean}){return <span aria-hidden="true" className={'creature '+(violet?'violet':'')}><i/><i/><b/></span>;}
+function Diorama(){return <div className="diorama" aria-hidden="true"><span className="orbit orbit-one"/><span className="orbit orbit-two"/><span className="star s1">✧</span><span className="star s2">✦</span><span className="star s3">✧</span><div className="mini-island first"><div className="grass"><span className="mini-house">⌂</span><Creature/><span className="flower">✿</span></div><div className="earth"/></div><div className="floating-piece"><Sparkles size={24}/></div><span className="arc">··················</span><div className="mini-island second"><div className="grass"><Creature violet/><span className="mini-house">⌂</span><span className="flower">✿</span></div><div className="earth"/></div><span className="art-label">a little less here. a little more there.</span></div>;}
+export default function Home(){
+ const [session,setSession]=useState<Session|null>(null),[room,setRoom]=useState<Room|null>(null),[name,setName]=useState(''),[code,setCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),[help,setHelp]=useState(false),[mode,setMode]=useState<'move'|'give'>('move'),[copied,setCopied]=useState(false),[network,setNetwork]=useState(false);
+ const active=useRef<Session|null>(null),current=useRef<Room|null>(null);current.current=room;
+ useEffect(()=>{try{const s=JSON.parse(sessionStorage.getItem('missing-piece-session')||'null');if(s?.token&&s?.code){active.current=s;setSession(s);}}catch{}const c=new URLSearchParams(location.search).get('room');if(c)setCode(c.toUpperCase());},[]);
+ function update(r:Room){if(!current.current||r.code!==current.current.code||r.version>=current.current.version){current.current=r;setRoom(r);}}
+ useEffect(()=>{if(!session)return;let alive=true;const controller=new AbortController();async function poll(){try{const res=await fetch('/api/rooms?code='+session!.code,{headers:{Authorization:'Bearer '+session!.token},signal:controller.signal});const data=await res.json() as Room & {token:string;error?:string};if(!alive)return;if(!res.ok){setError(data.error||'Unable to load room.');return;}update(data);setNetwork(false);}catch(e){if(alive)setNetwork(true);}}poll();const id=setInterval(poll,2000);return()=>{alive=false;controller.abort();clearInterval(id);};},[session]);
+ async function enter(op:'create'|'join'){if(busy)return;setBusy(true);setError('');try{const res=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op,name,code})});const data=await res.json() as Room & {token:string;error?:string};if(!res.ok)throw new Error(data.error);const s={code:data.code,token:data.token};sessionStorage.setItem('missing-piece-session',JSON.stringify(s));active.current=s;setSession(s);update(data);}catch(e){setError(e instanceof Error?e.message:'Something went wrong.');}finally{setBusy(false);}}
+ async function act(action:Action){if(!session||!room||busy)return;setBusy(true);setError('');try{const res=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.token},body:JSON.stringify({op:'action',code:session.code,version:room.version,action})});const data=await res.json() as Room & {token:string;error?:string};if(data.state)update(data);if(!res.ok)throw new Error(data.error);if(action.type==='offer')setMode('move');}catch(e){setError(e instanceof Error?e.message:'Action failed.');}finally{setBusy(false);}}
+ async function copy(){try{await navigator.clipboard.writeText(location.origin+'/?room='+room!.code);setCopied(true);setTimeout(()=>setCopied(false),2000);}catch{setError('Copy this room code: '+room?.code);}}
+ function leave(){sessionStorage.removeItem('missing-piece-session');active.current=null;current.current=null;setSession(null);setRoom(null);setError('');}
+ function Board({player,preview=false}:{player:number;preview?:boolean}){
+ if(!room)return null;const s=room.state,l=LEVELS[s.level].islands[player],mine=room.player===player,complete=key(s.positions[player])===key(l.home);
+ return <section className={'world '+(player===1?'lilac':'')}><div className="world-header"><div><span className="eyebrow">{mine?'YOUR WORLD':"YOUR PARTNER’S WORLD"}</span><h3>{room.names[player]||'Waiting for a friend'}<span className="world-dot"/></h3></div><span className="world-status">{complete?<><Check size={13}/> Home</>:mine?'Your moves':room.seen[player]&&Date.now()-room.seen[player]!<45000?'Connected':'Away'}</span></div><div className="board" role="group" aria-label={(mine?'Your':"Partner’s")+' island'}>{Array.from({length:35},(_,i)=>{
+ const x=i%7,y=Math.floor(i/7),k=x+','+y,floor=s.floors[player].includes(k),loose=floor&&l.loose.includes(k),socket=l.sockets.includes(k)&&!floor,creature=key(s.positions[player])===k,home=key(l.home)===k,near=Math.abs(s.positions[player][0]-x)+Math.abs(s.positions[player][1]-y)===1,offered=s.offer?.from===player&&s.offer.tile===k;
+ const canMove=mine&&floor&&near&&mode==='move',canGive=mine&&loose&&!creature&&mode==='give'&&!s.offer,canPlace=mine&&socket&&s.inventories[player]>0;
+ return <button key={k} disabled={preview||busy||!room.joined||won(s)||!(canMove||canGive||canPlace)} className={'tile '+(floor?'solid ':'void ')+(socket?'socket ':'')+(loose?'loose ':'')+(creature?'occupied ':'')+(offered?'offered ':'')+(canMove?'reachable ':'')+(canGive||canPlace?'selectable ':'')} aria-label={`${x+1}, ${y+1}: ${creature?'creature, ':''}${home?'home':loose?'gift tile':socket?'empty bridge gap':floor?'path':'empty space'}`} onClick={()=>canPlace?act({type:'place',tile:k}):canGive?act({type:'offer',tile:k}):act({type:'move',to:[x,y] as Point})}>{home?<House className="home-icon"/>:loose?<span className="tile-star">✦</span>:socket?<span className="socket-plus">+</span>:null}{creature&&<Creature violet={player===1}/>}</button>;
+ })}</div><div className="world-footer"><span><span className="legend-star">✦</span> {s.floors[player].filter(t=>l.loose.includes(t)).length} gift tiles left</span><span>{s.inventories[player]} {s.inventories[player]===1?'piece':'pieces'} received</span></div></section>;
+ }
+ return <div className="shell"><header className="topbar"><a href="/" className="brand"><span className="brand-mark"><i/><i/></span><span>the missing piece<span className="brand-period">.</span></span></a><div className="top-actions"><span className="quiet"><VolumeX size={14}/> Quiet by design</span><button className="text-button" onClick={()=>setHelp(true)}><HelpCircle size={16}/> How to play</button></div></header>
+ {!room?<main className="landing"><section className="hero-copy"><span className="pill"><span/> A COOPERATIVE PUZZLE FOR TWO</span><h1>Some things<br/>only fit<br/><em>together.</em></h1><p className="intro">Two little worlds. Two travelers finding their way home. Every piece you give leaves a hole behind.</p><p className="subintro">Make a little space for someone else.</p><div className="landing-facts"><span>2 players</span><span>Separate devices</span><span>No rush. Just you two.</span></div></section><section className="hero-right"><Diorama/><div className="lobby-card"><div className="card-kicker"><Link2 size={16}/> FIND YOUR OTHER HALF</div><h2>A small adventure, shared.</h2><label htmlFor="name">What should we call you?</label><input id="name" maxLength={24} autoComplete="nickname" placeholder="Your name" value={name} onChange={e=>setName(e.target.value)}/><button className="primary wide" disabled={busy||!name.trim()} onClick={()=>enter('create')}>{busy?'Opening the door…':'Create a room'}<ArrowRight size={18}/></button><div className="or"><span/> or join a friend <span/></div><form className="join-row" onSubmit={e=>{e.preventDefault();enter('join');}}><label className="sr-only" htmlFor="code">Room code</label><input id="code" maxLength={6} placeholder="ROOM CODE" value={code} onChange={e=>setCode(e.target.value.toUpperCase().replace(/[^A-Z2-9]/g,''))}/><button className="secondary" disabled={busy||code.length!==6||!name.trim()}>Join <ArrowUpRight size={16}/></button></form><p className="privacy">No account needed. Just a name and a friend.</p></div></section><footer className="landing-footer"><span>GIVE A PIECE. FIND A WAY.</span><span>Three little chapters. One shared journey.</span></footer></main>:<main className="game"><div className="game-top"><div><span className="eyebrow">CHAPTER {String(room.state.level+1).padStart(2,'0')} / 03</span><h1>{LEVELS[room.state.level].title}<span>.</span></h1></div><button className="room-code" onClick={copy}><span>ROOM</span>{room.code}{copied?<Check size={16}/>:<Copy size={16}/>}</button></div>
+ {!room.joined?<div className="waiting"><Sparkles size={22}/><div><strong>Your other half is on the way.</strong><p>Send your friend the link or ask them to enter <b>{room.code}</b> on their device.</p></div><button className="secondary" onClick={copy}>{copied?'Link copied':'Copy invite link'}<Copy size={15}/></button></div>:null}
+ <p className="chapter-hint">{LEVELS[room.state.level].lesson}</p><div className="worlds"><Board player={room.player}/><div className="between"><span>✦</span><i/><Link2 size={20}/><i/></div><Board player={1-room.player}/></div>
+ {won(room.state)?<section className="victory"><span className="eyebrow">BETTER TOGETHER</span><h2>{room.state.level===2?'A little space. A shared way home.':'Two travelers, safely home.'}</h2><p>{room.state.gifts} pieces shared · {room.state.moves} steps taken{room.state.level===2?' · All three chapters complete.':''}</p>{room.state.level<2?<button className="primary" disabled={busy||room.state.ready.includes(room.player)} onClick={()=>act({type:'next'})}>{room.state.ready.includes(room.player)?'Waiting for your partner…':'Next chapter'}<ChevronRight size={17}/></button>:<button className="secondary" onClick={leave}>Back to the beginning</button>}</section>:<section className="controls"><div className="mode-switch"><button className={mode==='move'?'chosen':''} onClick={()=>setMode('move')}><MoveUpRight size={16}/> Move</button><button className={mode==='give'?'chosen':''} onClick={()=>setMode('give')}><Sparkles size={16}/> Give a piece</button></div><p>{room.state.inventories[room.player]>0?'You have a piece! Tap an empty dotted gap to place it.':mode==='give'?'Tap a star-marked tile to offer it. Step off it first.':'Tap a glowing neighboring tile to move your traveler.'}</p></section>}
+ {room.state.offer&&<section className="offer-card"><Sparkles size={20}/><div><strong>{room.state.offer.from===room.player?'A little piece of your world, offered.':`${room.names[1-room.player]} is offering you a piece.`}</strong><p>{room.state.offer.from===room.player?'It stays on your island until your partner accepts.':'Accepting removes their star-marked tile and gives you one bridge piece.'}</p></div>{room.state.offer.from===room.player?<button className="secondary" disabled={busy} onClick={()=>act({type:'cancel'})}>Cancel</button>:<><button className="text-button" disabled={busy} onClick={()=>act({type:'decline'})}>Decline</button><button className="primary" disabled={busy} onClick={()=>act({type:'accept'})}>Accept <Check size={15}/></button></>}</section>}
+ <div className="game-bottom"><p role="status">{network?'Connection interrupted. Reconnecting…':room.state.message}</p><button className="text-button" disabled={!room.joined||busy||room.state.restart.includes(room.player)} onClick={()=>act({type:'restart'})}><RotateCcw size={14}/>{room.state.restart.length&&!room.state.restart.includes(room.player)?'Agree to restart':room.state.restart.includes(room.player)?'Restart requested':'Restart together'}</button></div><div className="legend"><span><span className="legend-star">✦</span> Giveable ground</span><span>⊞ Bridge gap</span><span><House size={13}/> Home</span><button className="text-button" onClick={leave}>Leave room</button></div></main>}
+ {session&&!room&&<p className="restoring" role="status">Reconnecting to your room… <button onClick={leave}>Start fresh</button></p>}
+ {error&&<div className="toast" role="alert">{error}<button aria-label="Dismiss error" onClick={()=>setError('')}><X size={16}/></button></div>}
+ {help&&<div className="modal-backdrop" onClick={()=>setHelp(false)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="help-title" onClick={e=>e.stopPropagation()}><button className="close" aria-label="Close instructions" autoFocus onClick={()=>setHelp(false)}><X size={20}/></button><span className="eyebrow">A LITTLE GUIDE</span><h2 id="help-title">Your missing piece<br/>might be theirs.</h2><ol><li><b>Meet here.</b> Create a room and send the invite link to one friend. Each person plays on their own device or browser session.</li><li><b>Find your footing.</b> Tap a neighboring solid tile to move. Reach the little house on your island.</li><li><b>Give a little ground.</b> Choose “Give a piece,” then tap a star tile you aren’t standing on. It leaves a hole only after your friend accepts.</li><li><b>Build a way.</b> Tap a dotted gap to place a received piece. Pieces cannot be taken back, so think before you give.</li><li><b>Get home together.</b> Both travelers must reach home. Both players agree before restarting or moving to the next chapter.</li></ol><p>No timer. Talk if you like, or coordinate through offers. Rooms last 24 hours. Keep your tab open to retain your seat.</p><button className="primary wide" onClick={()=>setHelp(false)}>Let’s find a way <ArrowRight size={17}/></button></section></div>}
+ </div>;
 }
