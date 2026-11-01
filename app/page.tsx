@@ -13,7 +13,21 @@ export default function Home(){
  function update(r:Room){if(!current.current||r.code!==current.current.code||r.version>=current.current.version){current.current=r;setRoom(r);}}
  useEffect(()=>{if(!session)return;let alive=true;const controller=new AbortController();async function poll(){try{const res=await fetch('/api/rooms?code='+session!.code,{headers:{Authorization:'Bearer '+session!.token},signal:controller.signal});const data=await res.json() as Room & {token:string;error?:string};if(!alive)return;if(!res.ok){setError(data.error||'Unable to load room.');return;}update(data);setNetwork(false);}catch(e){if(alive)setNetwork(true);}}poll();const id=setInterval(poll,2000);return()=>{alive=false;controller.abort();clearInterval(id);};},[session]);
  async function enter(op:'create'|'join'){if(busy)return;setBusy(true);setError('');try{const res=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op,name,code})});const data=await res.json() as Room & {token:string;error?:string};if(!res.ok)throw new Error(data.error);const s={code:data.code,token:data.token};sessionStorage.setItem('missing-piece-session',JSON.stringify(s));active.current=s;setSession(s);update(data);}catch(e){setError(e instanceof Error?e.message:'Something went wrong.');}finally{setBusy(false);}}
- async function act(action:Action){if(!session||!room||busy)return;setBusy(true);setError('');try{const res=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.token},body:JSON.stringify({op:'action',code:session.code,version:room.version,action})});const data=await res.json() as Room & {token:string;error?:string};if(data.state)update(data);if(!res.ok)throw new Error(data.error);if(action.type==='offer')setMode('move');}catch(e){setError(e instanceof Error?e.message:'Action failed.');}finally{setBusy(false);}}
+ async function act(action:Action){if(!session||!room||busy)return;setBusy(true);setError('');try{
+ let version=room.version;
+ for(let attempt=0;attempt<3;attempt++){
+ const res=await fetch('/api/rooms',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.token},body:JSON.stringify({op:'action',code:session.code,version,action})});
+ const data=await res.json() as Room & {error?:string};
+ if(data.state)update(data);
+ if(res.status===409&&attempt<2){
+ const refresh=await fetch('/api/rooms?code='+session.code,{headers:{Authorization:'Bearer '+session.token}});
+ const latest=await refresh.json() as Room & {error?:string};if(!refresh.ok)throw new Error(latest.error);update(latest);
+ if(latest.state.level!==room.state.level)throw new Error('The chapter changed. Choose your move again.');version=latest.version;continue;
+ }
+ if(!res.ok)throw new Error(data.error);
+ if(action.type==='offer')setMode('move');break;
+ }
+ }catch(e){setError(e instanceof Error?e.message:'Action failed.');}finally{setBusy(false);}}
  async function copy(){try{await navigator.clipboard.writeText(location.origin+'/?room='+room!.code);setCopied(true);setTimeout(()=>setCopied(false),2000);}catch{setError('Copy this room code: '+room?.code);}}
  function leave(){sessionStorage.removeItem('missing-piece-session');active.current=null;current.current=null;setSession(null);setRoom(null);setError('');}
  function Board({player,preview=false}:{player:number;preview?:boolean}){
