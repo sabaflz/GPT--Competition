@@ -1,12 +1,13 @@
 import { env } from 'cloudflare:workers';
-import { initial, apply, type Game, type Action } from '@/lib/game';
+import { initial, apply, won, type Game, type Action } from '@/lib/game';
 export const dynamic='force-dynamic';
 type Room={code:string;host_hash:string;guest_hash:string|null;host_name:string;guest_name:string|null;state:string;version:number;created_at:number;host_seen:number;guest_seen:number|null};
 const response=(body:unknown,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
 const hash=async(t:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)))).map(x=>x.toString(16).padStart(2,'0')).join('');
 const validCode=(code:string)=>/^[A-HJ-NP-Z2-9]{6}$/.test(code);
 function db(){if(!env.DB)throw new Error('Room storage is not ready. Please try again shortly.');return env.DB;}
-function view(r:Room,p:number){return {code:r.code,player:p,names:[r.host_name,r.guest_name],joined:!!r.guest_hash,state:JSON.parse(r.state) as Game,version:r.version,seen:[r.host_seen,r.guest_seen]};}
+const readGame=(raw:string):Game=>{const s=JSON.parse(raw);return s.rules===2?s:initial();};
+function view(r:Room,p:number){return {code:r.code,player:p,names:[r.host_name,r.guest_name],joined:!!r.guest_hash,state:readGame(r.state),version:r.version,seen:[r.host_seen,r.guest_seen]};}
 async function authenticate(req:Request,code:string){
  if(!validCode(code))throw new Error('Enter a valid six-character room code.');
  const token=req.headers.get('authorization')?.replace(/^Bearer /,'');if(!token||token.length>100)throw new Error('Your session is missing. Please rejoin.');
@@ -43,7 +44,8 @@ export async function POST(req:Request){try{
  const {r,p}=await authenticate(req,String(body.code||''));
  if(!r.guest_hash)throw new Error('Wait for your partner to join.');
  if(body.version!==r.version)return response({error:'Your partner just acted. Please try again.',...view(r,p)},409);
- const state=apply(JSON.parse(r.state),p,body.action as Action);
+ const previous=readGame(r.state);const state=apply(previous,p,body.action as Action);
+ if(!state.startedAt)state.startedAt=Date.now();if(won(state)&&!state.finishedAt)state.finishedAt=Date.now();
  const result=await db().prepare('UPDATE rooms SET state=?,version=version+1 WHERE code=? AND version=?').bind(JSON.stringify(state),r.code,r.version).run();
  if(!result.meta.changes)return response({error:'Your partner just acted. Please try again.'},409);
  r.state=JSON.stringify(state);r.version++;return response(view(r,p));
